@@ -1,0 +1,33 @@
+name: Build ScreenSoundSwitch
+
+on:
+  workflow_dispatch: # 允许在 GitHub 网页上手动点击按钮触发打包
+
+jobs:
+  build:
+    runs-on: windows-latest # 使用 GitHub 官方提供的 Windows Server 编译机
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 配置 .NET 环境
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' # WinUI3 常用版本，若项目用了其他版本可改为 9.0.x
+
+      # 3. 还原依赖并编译发布（独立免安装包）
+      - name: Build and Publish
+        run: |
+          dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
+
+      # 4. 将打包好的文件作为 Artifact 上传供下载
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenSoundSwitch-WinUI3-x64
+          path: ./publish
